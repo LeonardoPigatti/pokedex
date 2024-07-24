@@ -11,21 +11,38 @@
               height="200"
             />
             <h1 class="text-center white--text mb-2" style="font-size: 5rem">
-              Pokedex
+              Developed by
             </h1>
             <h1 class="text-center white--text mb-8">
               Created by
-              <a class="red--text" href="https://neps.academy">Neps Academy</a>
+              <a class="pink--text" style="text-decoration: none;" href="https://github.com/LeonardoPigatti">
+                Leonardo Vinicius Milani Pigatti
+              </a>
             </h1>
           </v-container>
         </v-row>
 
-        <v-text-field
-          v-model="search"
-          label="Pesquisar"
-          placeholder="Charmander"
-          solo
-        ></v-text-field>
+        <v-row align="center">
+          <button @click="toggleSearchField" class="button-style">
+            <img
+              :src="require('../src/assets/pokeball.png')"
+              height="100"
+              :class="{ 'flip-x': showSearchField }"
+            />
+          </button>
+
+          <transition name="slide-fade">
+            <v-col v-if="showSearchField">
+              <v-text-field
+                v-model="search"
+                label="Choose your Pokémon to start your journey"
+                placeholder="Pikachu or Charmander? Whatever everyone knows that Squirtle is THE BEST"
+                solo
+                class="search-field"
+              ></v-text-field>
+            </v-col>
+          </transition>
+        </v-row>
 
         <v-row>
           <v-col
@@ -67,6 +84,7 @@ export default {
       search: "",
       show_dialog: false,
       selected_pokemon: null,
+      showSearchField: false,
     };
   },
 
@@ -78,6 +96,9 @@ export default {
       });
   },
   methods: {
+    toggleSearchField() {
+      this.showSearchField = !this.showSearchField;
+    },
     show_pokemon(id) {
       axios.get(`https://pokeapi.co/api/v2/pokemon/${id}`).then((response) => {
         this.selected_pokemon = response.data;
@@ -111,8 +132,8 @@ export default {
   background: linear-gradient(
       to bottom right,
       rgba(10, 10, 10, 1),
-      rgba(12, 39, 63, 1)
-    )
+      rgb(7, 20, 31)
+      )
     no-repeat center center fixed !important;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -120,5 +141,32 @@ export default {
   background-size: cover !important;
   background-position: center;
   min-height: 100vh;
+}
+
+.button-style {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.flip-x {
+  transform: scaleX(-1);
+}
+
+.slide-fade-enter-active {
+  transition: all 0.5s ease;
+}
+.slide-fade-leave-active {
+  transition: all 0.5s ease;
+}
+.slide-fade-enter, .slide-fade-leave-to /* .slide-fade-leave-active in <2.1.8 */ {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.search-field {
+  position: relative;
+  top: 20px;
 }
 </style>
