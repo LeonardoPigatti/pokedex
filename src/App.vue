@@ -22,7 +22,6 @@
           </v-container>
         </v-row>
 
-
         <v-row align="center">
           <button @click="toggleSearchField" class="button-style">
             <img
@@ -43,21 +42,24 @@
               ></v-text-field>
             </v-col>
           </transition>
-          <v-row>
-  <v-col cols="12">
-    <!-- Botões para cada tipo -->
-    <v-btn-toggle style="  left: 12px;" v-model="selectedTypes" multiple>
-      <v-btn
-        v-for="type in allTypes"
-        :key="type"
-        @click="toggleType(type)"
-        :class="{ 'selected-type': selectedTypes.includes(type) }"
-      >
-        {{ type }}
-      </v-btn>
-    </v-btn-toggle>
-  </v-col>
-</v-row>
+        </v-row>
+
+        <!-- Botões de Tipo -->
+        <v-row class="type-buttons-row">
+          <v-col
+            v-for="(type, index) in allTypes"
+            :key="index"
+            cols="auto"
+            class="type-button-col"
+          >
+            <v-btn
+              @click="toggleType(type)"
+              :style="{ 'background-color': getButtonColor(type), 'color': '#fff', 'border': '2px solid #000' }"
+              class="type-button"
+            >
+              {{ type }}
+            </v-btn>
+          </v-col>
         </v-row>
 
         <v-row>
@@ -97,6 +99,26 @@ export default {
       search: "",
       allTypes: [], // Lista de todos os tipos de Pokémon
       selectedTypes: [], // Tipos selecionados
+      typeColors: {
+        fire: '#F08030',
+        water: '#6890F0',
+        grass: '#78C850',
+        electric: '#F8D030',
+        ice: '#98D8D8',
+        fighting: '#C03028',
+        poison: '#A040A0',
+        ground: '#E0C068',
+        flying: '#A890F0',
+        psychic: '#F85888',
+        bug: '#A8B820',
+        rock: '#B8A038',
+        ghost: '#705898',
+        dragon: '#7038F8',
+        dark: '#705848',
+        steel: '#B8B8D0',
+        fairy: '#F0B6BC'
+        // Adicione mais tipos e cores conforme necessário
+      },
       show_dialog: false,
       selected_pokemon: null,
       showSearchField: false,
@@ -148,6 +170,11 @@ export default {
       } else {
         this.selectedTypes.splice(index, 1);
       }
+    },
+    getButtonColor(type) {
+      return this.selectedTypes.includes(type)
+        ? this.typeColors[type] || '#000' // Default color if type not found
+        : '#ccc'; // Color for unselected types
     },
   },
   computed: {
@@ -210,5 +237,27 @@ export default {
 .search-field {
   position: relative;
   top: 20px;
+}
+
+/* Estilo adicional para o layout dos botões de tipo */
+.type-buttons-row {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 0;
+}
+
+.type-button-col {
+  flex: 1 0 10%; /* Cada coluna ocupa até 10% da largura disponível */
+  max-width: 10%; /* Máximo de 10% da largura */
+  padding: 0; /* Remove o padding */
+}
+
+.type-button {
+  width: 100%; /* Ocupa toda a largura da coluna */
+  margin: 0; /* Remove a margem */
+  border: 2px solid #000; /* Adiciona a borda aos botões */
+  border-radius: 4px; /* Adiciona borda arredondada para um visual mais limpo */
+  text-transform: capitalize; /* Capitaliza o texto dos botões */
+  background-color: #ada8a8;
 }
 </style>
