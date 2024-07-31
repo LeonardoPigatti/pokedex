@@ -44,23 +44,73 @@
           </transition>
         </v-row>
 
-        <!-- Botões de Tipo -->
-        <v-row class="type-buttons-row">
-          <v-col
-            v-for="(type, index) in allTypes"
-            :key="index"
-            cols="auto"
-            class="type-button-col"
-          >
-            <v-btn
-              @click="toggleType(type)"
-              :style="{ 'background-color': getButtonColor(type), 'color': '#fff', 'border': '2px solid #000' }"
-              class="type-button"
-            >
-              {{ type }}
-            </v-btn>
-          </v-col>
+        <!-- Botão para mostrar/ocultar filtros -->
+        <v-row class="filter-toggle-row">
+          <v-btn style="left: 12px;" @click="toggleFilters" class="filter-toggle-button">
+            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+          </v-btn>
         </v-row>
+
+        <!-- Filtros de Tipo, Peso e Altura -->
+        <transition name="slide-fade">
+          <v-row v-if="showFilters" class="filter-row">
+            <v-col cols="12">
+              <!-- Botões de Tipo -->
+              <v-row style="margin-left:1px; margin-top: 5px;" class="type-buttons-row">
+                <v-col
+                  v-for="(type, index) in allTypes"
+                  :key="index"
+                  cols="auto"
+                  class="type-button-col"
+                >
+                  <v-btn
+                    @click="toggleType(type)"
+                    :style="{ 'background-color': getButtonColor(type), 'color': '#fff', 'border': '2px solid #000' }"
+                    class="type-button"
+                  >
+                    {{ type }}
+                  </v-btn>
+                </v-col>
+              </v-row>
+
+              <!-- Input para Filtragem por Peso -->
+              <v-row class="filter-row">
+                <v-col cols="12">
+                  <el-input-number
+                    v-model="minWeight"
+                    :min="0"
+                    label="Minimum Weight (kg)"
+                    class="filter-input"
+                  />
+                  <el-input-number
+                    v-model="maxWeight"
+                    :min="0"
+                    label="Maximum Weight (kg)"
+                    class="filter-input"
+                  />
+                </v-col>
+              </v-row>
+
+              <!-- Input para Filtragem por Altura -->
+              <v-row class="filter-row">
+                <v-col cols="12">
+                  <el-input-number
+                    v-model="minHeight"
+                    :min="0"
+                    label="Minimum Height (m)"
+                    class="filter-input"
+                  />
+                  <el-input-number
+                    v-model="maxHeight"
+                    :min="0"
+                    label="Maximum Height (m)"
+                    class="filter-input"
+                  />
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
+        </transition>
 
         <v-row>
           <v-col
@@ -86,12 +136,14 @@
 import axios from "axios";
 import PokemonCard from "./components/PokemonCard.vue";
 import PokemonInfoDialog from "./components/PokemonInfoDialog.vue";
+import { InputNumber as ElInputNumber } from 'element-ui';
 
 export default {
   name: "App",
   components: {
     PokemonCard,
     PokemonInfoDialog,
+    ElInputNumber
   },
   data() {
     return {
@@ -99,6 +151,10 @@ export default {
       search: "",
       allTypes: [], // Lista de todos os tipos de Pokémon
       selectedTypes: [], // Tipos selecionados
+      minWeight: 0, // Peso mínimo para filtragem
+      maxWeight: 1000, // Peso máximo para filtragem
+      minHeight: 0, // Altura mínima para filtragem
+      maxHeight: 1000, // Altura máxima para filtragem
       typeColors: {
         fire: '#F08030',
         water: '#6890F0',
@@ -122,6 +178,7 @@ export default {
       show_dialog: false,
       selected_pokemon: null,
       showSearchField: false,
+      showFilters: false // Controle de visibilidade dos filtros
     };
   },
   mounted() {
@@ -155,6 +212,8 @@ export default {
             return {
               ...pokemon,
               types: response.data.types.map(t => t.type.name),
+              weight: response.data.weight / 10, // Peso em kg
+              height: response.data.height / 10 // Altura em m
             };
           });
       });
@@ -176,6 +235,9 @@ export default {
         ? this.typeColors[type] || '#000' // Default color if type not found
         : '#ccc'; // Color for unselected types
     },
+    toggleFilters() {
+      this.showFilters = !this.showFilters;
+    }
   },
   computed: {
     filtered_pokemons() {
@@ -184,7 +246,9 @@ export default {
         const matchesType = this.selectedTypes.length === 0
           ? true
           : pokemon.types.some(type => this.selectedTypes.includes(type));
-        return matchesName && matchesType;
+        const matchesWeight = pokemon.weight >= this.minWeight && pokemon.weight <= this.maxWeight;
+        const matchesHeight = pokemon.height >= this.minHeight && pokemon.height <= this.maxHeight;
+        return matchesName && matchesType && matchesWeight && matchesHeight;
       });
     },
   },
@@ -239,11 +303,8 @@ export default {
   top: 20px;
 }
 
-/* Estilo adicional para o layout dos botões de tipo */
 .type-buttons-row {
   flex-wrap: wrap;
-  justify-content: flex-start;
-  margin: 0;
 }
 
 .type-button-col {
@@ -254,10 +315,25 @@ export default {
 
 .type-button {
   width: 100%; /* Ocupa toda a largura da coluna */
-  margin: 0; /* Remove a margem */
-  border: 2px solid #000; /* Adiciona a borda aos botões */
-  border-radius: 4px; /* Adiciona borda arredondada para um visual mais limpo */
-  text-transform: capitalize; /* Capitaliza o texto dos botões */
-  background-color: #ada8a8;
+  height: 40px; /* Altura do botão */
+  border-radius: 4px; /* Bordas arredondadas */
+}
+
+.filter-toggle-row {
+  margin-top: 20px;
+}
+
+.filter-toggle-button {
+  background-color: #007bff; /* Cor de fundo do botão */
+  color: #fff; /* Cor do texto do botão */
+}
+
+.filter-row {
+  margin-top: 20px;
+}
+
+.filter-input {
+  width: calc(50% - 10px); /* Ocupa metade da largura disponível menos a margem */
+  margin-right: 10px; /* Margem direita */
 }
 </style>

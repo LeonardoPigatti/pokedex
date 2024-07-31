@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "axios": "^0.26.0",
+    "bootstrap": "^5.3.3",
     "core-js": "^3.6.5",
+    "element-ui": "^2.15.14",
     "vue": "^2.6.11",
     "vuetify": "^2.6.0"
   },
