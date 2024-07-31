@@ -11,7 +11,7 @@
               height="200"
             />
             <h1 class="text-center white--text mb-2" style="font-size: 5rem">
-              Developed by
+              Pokedex
             </h1>
             <h1 class="text-center white--text mb-8">
               Created by
@@ -21,6 +21,7 @@
             </h1>
           </v-container>
         </v-row>
+
 
         <v-row align="center">
           <button @click="toggleSearchField" class="button-style">
@@ -42,6 +43,21 @@
               ></v-text-field>
             </v-col>
           </transition>
+          <v-row>
+  <v-col cols="12">
+    <!-- Botões para cada tipo -->
+    <v-btn-toggle style="  left: 12px;" v-model="selectedTypes" multiple>
+      <v-btn
+        v-for="type in allTypes"
+        :key="type"
+        @click="toggleType(type)"
+        :class="{ 'selected-type': selectedTypes.includes(type) }"
+      >
+        {{ type }}
+      </v-btn>
+    </v-btn-toggle>
+  </v-col>
+</v-row>
         </v-row>
 
         <v-row>
@@ -66,33 +82,38 @@
 
 <script>
 import axios from "axios";
-
 import PokemonCard from "./components/PokemonCard.vue";
 import PokemonInfoDialog from "./components/PokemonInfoDialog.vue";
 
 export default {
   name: "App",
-
   components: {
     PokemonCard,
     PokemonInfoDialog,
   },
-
   data() {
     return {
       pokemons: [],
       search: "",
+      allTypes: [], // Lista de todos os tipos de Pokémon
+      selectedTypes: [], // Tipos selecionados
       show_dialog: false,
       selected_pokemon: null,
       showSearchField: false,
     };
   },
-
   mounted() {
     axios
-      .get("https://pokeapi.co/api/v2/pokemon?limit=493")
+      .get("https://pokeapi.co/api/v2/pokemon?limit=20") // Fetch more Pokémons
       .then((response) => {
         this.pokemons = response.data.results;
+        this.fetchPokemonDetails();
+      });
+
+    // Fetch all Pokémon types
+    axios.get("https://pokeapi.co/api/v2/type")
+      .then((response) => {
+        this.allTypes = response.data.results.map(type => type.name);
       });
   },
   methods: {
@@ -105,22 +126,38 @@ export default {
         this.show_dialog = !this.show_dialog;
       });
     },
-    get_move_level(move) {
-      for (let version of move.version_group_details) {
-        if (
-          version.version_group.name == "sword-shield" &&
-          version.move_learn_method.name == "level-up"
-        ) {
-          return version.level_learned_at;
-        }
+    fetchPokemonDetails() {
+      this.pokemons = this.pokemons.map(pokemon => {
+        return axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
+          .then(response => {
+            return {
+              ...pokemon,
+              types: response.data.types.map(t => t.type.name),
+            };
+          });
+      });
+      // Wait until all fetches are complete
+      Promise.all(this.pokemons).then(results => {
+        this.pokemons = results;
+      });
+    },
+    toggleType(type) {
+      const index = this.selectedTypes.indexOf(type);
+      if (index === -1) {
+        this.selectedTypes.push(type);
+      } else {
+        this.selectedTypes.splice(index, 1);
       }
-      return 0;
     },
   },
   computed: {
     filtered_pokemons() {
-      return this.pokemons.filter((item) => {
-        return item.name.includes(this.search);
+      return this.pokemons.filter((pokemon) => {
+        const matchesName = pokemon.name.includes(this.search);
+        const matchesType = this.selectedTypes.length === 0
+          ? true
+          : pokemon.types.some(type => this.selectedTypes.includes(type));
+        return matchesName && matchesType;
       });
     },
   },
@@ -152,6 +189,11 @@ export default {
 
 .flip-x {
   transform: scaleX(-1);
+}
+
+.selected-type {
+  background-color: #ffcc00; /* Cor de destaque para tipos selecionados */
+  color: #000;
 }
 
 .slide-fade-enter-active {
