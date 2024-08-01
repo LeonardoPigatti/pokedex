@@ -5,9 +5,10 @@
         <v-row class="d-flex align-center">
           <v-col cols="12" md="4">
             <img
-              :src="`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${selected_pokemon.id}.png`"
-              :alt="selected_pokemon.name"
-              width="80%"
+            style="margin-top:40px"
+            :src="require(`../assets/sprites/${selected_pokemon.name}.gif`)"
+            :alt="selected_pokemon.name"
+              width="50%"
             />
           </v-col>
           <v-col cols="12" md="8">
